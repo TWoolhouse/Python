@@ -127,7 +127,7 @@ class PageGame(gui.Page):
         self.add(gui.tk.Button(self, text="Board", command=self.play))
         self.add(gui.tk.Button(self, text="Save", command=self.save))
         self.add(gui.tk.Button(self, text="Load", command=self.load))
-        self.add(gui.tk.Button(self, text="Leave"))
+        self.add(gui.tk.Button(self, text="Leave", command=lambda: self.parent["network"].disconnect()))
 
     def play(self):
         if not self.parent.b_open:
@@ -153,6 +153,8 @@ class PageNetwork(gui.Page):
             self.add(gui.tk.Button(self, text="Chat", command=lambda: self.show_page("chat")))
             self.add(gui.tk.Button(self, text="Save", command=self.save))
             self.add(gui.tk.Button(self, text="Load", command=self.load))
+            self.add(gui.tk.Button(self, text="Join", command=self.connect))
+            self.add(gui.tk.Button(self, text="Leave", command=self.disconnect))
         else:
             self.add(gui.tk.Label(self, text="Networking is Disabled"))
 
@@ -165,12 +167,25 @@ class PageNetwork(gui.Page):
             pass
 
     def load(self, answer=False):
-        answer = answer if answer else gui.tk.simpledialog.askstring("Save File", "Enter Save Name:", parent=self)
+        answer = answer if answer else gui.tk.simpledialog.askstring("Load File", "Enter Save Name:", parent=self)
         if answer in ("", None):
             answer = "save"
         data = self.parent.nc.load(answer)
         if data:
             self.parent.lb = data
+
+    def connect(self):
+        answer = gui.tk.simpledialog.askstring("IP", "Enter IP Address:", parent=self)
+        if answer in ("", None):
+            ip = iofile.read.cfg("options")["network"]["address"]
+        elif len(answer.split(".")) == 4 and all([(i.isdigit()) and (0 < len(i) < 4) for i in answer.split(".")]):
+            ip = answer
+        else:
+            return False
+        self.parent.
+
+    def disconnect(self):
+        pass
 
 class PageChat(gui.Page):
 
