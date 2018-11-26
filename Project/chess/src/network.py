@@ -31,19 +31,29 @@ class Client(client.Client):
         set_options()
         self.addr, self.port = options["address"], options["port"]
 
-    def save(self, name, data):
+    def save_req(self, name, data):
         self.cmd("save", name)
         self.send(data, bin=True)
         if self.recv() == "FILE":
             return True
         return False
 
-    def load(self, name):
+    def load_req(self, name):
         self.cmd("load", name)
         data = self.recv(size=8192, bin=True)
         if data != b"NO FILE":
             return iofile.pickle.loads(data)
         return False
+
+    def transfer_req(self, data):
+        if self.save_req("temp/"+str(self.id), data):
+            return self.cmd("recv_turn", self.id, slv=True)
+        return False
+
+    def recv_turn(self, name):
+        data = self.load_req("temp/"+str(name))
+        if data:
+            iofile.write
 
 #---Functions------------------------------------------------------------------#
 

@@ -15,35 +15,35 @@ pallet = ["black", "white"] # allows for dynamically changing the colour of the 
 
 class Control(gui.Window):
 
-    def __init__(self, board, client, server):
+    def __init__(self, board, client):
         super().__init__("Chess Control")
 
         self.lb = board
         self.nc = client
-        self.ns = server
+        self.vb = Board(self, self.lb)
+        self.vb.close()
 
         PageGame(self, "game")
         PageNetwork(self, "network")
         PageChat(self, "chat")
         PageMenu(self, "menu")
-        self.b_open = False
 
 class Board:
 
     def __init__(self, parent, board):
-        parent.b_open = True
+        parent.vb_open = True
         self.gbs = graphics.Screen("Chess Board") # the screen the board is on
         self.gbs.getcanvas().winfo_toplevel().protocol("WM_DELETE_WINDOW", self.close)
         self.gbts = graphics.Turtle() # graphics board turtle squares
         self.gbtp = graphics.Turtle() # graphics board turtle pieces
         self.gbth = graphics.Turtle() # graphics board turtle highlight
-        self.board = board
-        self.parent = parent
         self.gbs.onclick(self.select_piece)
         self.gbs.onclick(self.h_clear, btn=3)
+        self.board = board
+        self.parent = parent
 
     def close(self):
-        self.parent.b_open = False
+        self.parent.vb_open = False
         self.gbs.bye()
         self.parent.focus_force()
 
@@ -97,6 +97,8 @@ class Board:
             self.gbth.clear()
             if val == 1:
                 self.draw_pieces()
+                if self.parent.nc.target:
+                    self.parent["network"].send()
             elif val == 2:
                 self.draw_moves(pos.piece)
                 self.draw_highlight(pos, "green", 2)
@@ -130,19 +132,22 @@ class PageGame(gui.Page):
         self.add(gui.tk.Button(self, text="Leave", command=lambda: self.parent["network"].disconnect()))
 
     def play(self):
-        if not self.parent.b_open:
-            self.parent.b = Board(self.parent, self.parent.lb)
-        self.parent.b.gbs.listen()
-        self.parent.b.draw_board()
-        self.parent.b.draw_pieces()
+        if not self.parent.vb_open:
+            self.parent.vb = Board(self.parent, self.parent.lb)
+        self.parent.vb.gbs.listen()
+        self.parent.vb.draw_board()
+        self.parent.vb.draw_pieces()
 
     def save(self, answer=False):
         answer = answer if answer else gui.tk.simpledialog.askstring("Save As", "Enter Save Name:", parent=self)
         iofile.write.pickle("saves/"+(answer if answer not in (None, "") else "save"), self.parent.lb, ext="sav")
 
-    def load(self):
-        answer = gui.tk.simpledialog.askstring("Load", "Enter Save Name:", parent=self)
+    def load(self, answer=False):
+        answer = answer if answer else gui.tk.simpledialog.askstring("Load", "Enter Save Name:", parent=self)
         self.parent.lb = iofile.read.pickle("saves/"+(answer if answer not in (None, "") else "save"), ext="sav")
+        self.parent.vb.board = self.parent.lb
+        if self.parent.vb_open:
+            self.parent.vb.draw_pieces()
 
 class PageNetwork(gui.Page):
 
@@ -161,31 +166,29 @@ class PageNetwork(gui.Page):
     def save(self, answer=False):
         answer = answer if answer else gui.tk.simpledialog.askstring("Save File", "Enter Save Name:", parent=self)
         if answer in ("", None):
-            file_name = "save"
-        data = self.parent.nc.save(file_name, iofile.read.bin("saves/"+file_name, ext="sav"))
-        if data:
-            pass
+            file_name = "server"
+        data = self.parent.nc.save_req(file_name, iofile.read.bin("saves/"+file_name, ext="sav"))
 
     def load(self, answer=False):
         answer = answer if answer else gui.tk.simpledialog.askstring("Load File", "Enter Save Name:", parent=self)
         if answer in ("", None):
-            answer = "save"
-        data = self.parent.nc.load(answer)
+            answer = "server"
+        data = self.parent.nc.load_req(answer)
         if data:
-            self.parent.lb = data
+            iofile.write.pickle("saves/server", data, ext="sav")
 
     def connect(self):
-        answer = gui.tk.simpledialog.askstring("IP", "Enter IP Address:", parent=self)
+        answer = gui.tk.simpledialog.askstring("IP", "Enter ID:", parent=self)
         if answer in ("", None):
-            ip = iofile.read.cfg("options")["network"]["address"]
-        elif len(answer.split(".")) == 4 and all([(i.isdigit()) and (0 < len(i) < 4) for i in answer.split(".")]):
-            ip = answer
-        else:
             return False
-        self.parent.
+        else:
+            print(self.parent.nc.connect(answer))
 
     def disconnect(self):
-        pass
+        self.parent.nc.connect(-1)
+
+    def send(self):
+        data = self.parent.nc.transfer_req(iofile.pickle.dumps(self.parent.lb))
 
 class PageChat(gui.Page):
 

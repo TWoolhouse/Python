@@ -9,9 +9,8 @@ from src import logic, visual, network
 #---Setup----------------------------------------------------------------------#
 
 lb = logic.Board()
-ns = network.Server()
 nc = network.Client()
-vc = visual.Control(lb, nc, ns)
+vc = visual.Control(lb, nc)
 
 lb.build()
 
