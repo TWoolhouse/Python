@@ -5,65 +5,52 @@ import iofile
 
 #---Global Variables-----------------------------------------------------------#
 
-options = {}
-
 #---Classes--------------------------------------------------------------------#
 
-class Server(server.Server):
+class Server():
 
-    def __init__(self):
-        super().__init__("", options["port"], options["max_conns"], commands="src.commands")
-        if options["allowed"]:
+    def __init__(self, parent, open=False):
+        self.parent = parent
+        self.network = server.Server("", parent.options["network"]["port"], parent.options["network"]["max_conns"], **{"PLAYERS":self.get_players})
+        if open:
             self.open()
 
     def update_options(self):
-        set_options()
-        self.port, self.limit = options["port"], options["max_conns"]
+        self.network.port, self.network.limit = self.parent.options["network"]["port"], self.parent.options["network"]["max_conns"]
+        self.network.close()
+        self.open()
 
-class Client(client.Client):
+    def open(self):
+        if self.parent.options["network"]["allowed"] and self.parent.options["network"]["host"]:
+            self.network.open()
 
-    def __init__(self):
-        super().__init__(options["address"], options["port"])
-        if options["allowed"]:
+    def get_players(self, s, *args):
+        s.send("|^|".join([str(i)+"|NAME" for i in s.server.connections]), "PLAYERS")
+
+class Client():
+
+    def __init__(self, parent, open=False):
+        self.parent = parent
+        self.network = client.Client(parent.options["network"]["address"], parent.options["network"]["port"])
+        if open:
             self.open()
 
     def update_options(self):
-        set_options()
-        self.addr, self.port = options["address"], options["port"]
+        self.network.addr, self.network.port = self.parent.options["network"]["address"], self.parent.options["network"]["port"]
+        self.network.close()
+        self.open()
 
-    def save_req(self, name, data):
-        self.cmd("save", name)
-        self.send(data, bin=True)
-        if self.recv() == "FILE":
-            return True
-        return False
+    def open(self):
+        if self.parent.options["network"]["allowed"]:
+            self.network.open()
 
-    def load_req(self, name):
-        self.cmd("load", name)
-        data = self.recv(size=8192, bin=True)
-        if data != b"NO FILE":
-            return iofile.pickle.loads(data)
-        return False
-
-    def transfer_req(self, data):
-        if self.save_req("temp/"+str(self.id), data):
-            return self.cmd("recv_turn", self.id, slv=True)
-        return False
-
-    def recv_turn(self, name):
-        data = self.load_req("temp/"+str(name))
-        if data:
-            iofile.write
+    def get_players(self):
+        self.network.send("get_players", "PLAYERS")
+        return [j for j in [i.split("|") for i in self.network.data("PLAYERS")[0][1].split("|^|")] if j[0] != str(self.network.id)]
 
 #---Functions------------------------------------------------------------------#
 
-def set_options():
-    global options
-    options = iofile.read.cfg("options")["network"]
-
 #---Setup----------------------------------------------------------------------#
-
-set_options()
 
 #---Main Loop------------------------------------------------------------------#
 

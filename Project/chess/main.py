@@ -1,21 +1,39 @@
+import libs
+import iofile
+from vector import Vector
 from src import logic, visual, network
 
-#---Global Variables-----------------------------------------------------------#
+class Game:
 
-#---Classes--------------------------------------------------------------------#
+    def __init__(self):
+        self.options = iofile.read.cfg("options")
+        self.lb = logic.Board()
+        self.lb.build()
+        self.vc = visual.Control(self)
+        self.ns = network.Server(self, True)
+        self.nc = network.Client(self, True)
 
-#---Functions------------------------------------------------------------------#
+    def __repr__(self):
+        return "{}\n{}\n{}".format(self.lb, self.vc, "nc")
 
-#---Setup----------------------------------------------------------------------#
+    def update_options(*args):
+        global options
+        options = iofile.read.cfg("options")
+        for i in args:
+            getattr(self, i).update_options()
 
-lb = logic.Board()
-nc = network.Client()
-vc = visual.Control(lb, nc)
+#---Events---------------------------------------------------------------------#
 
-lb.build()
+    def select(self, pos):
+        val = self.lb.select(pos)
+        self.vc.vb.select(pos, val)
+        if val == 1:
+            pass # do network stuff
 
-#---Main Loop------------------------------------------------------------------#
+    def get_players(self):
+        return self.nc.get_players()
 
-#---End------------------------------------------------------------------------#
+#---Run------------------------------------------------------------------------#
 
-vc.mainloop()
+main_game = Game()
+main_game.vc.mainloop()
