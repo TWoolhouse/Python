@@ -31,7 +31,7 @@ class Client():
 
     def __init__(self, parent, open=False):
         self.parent = parent
-        self.network = client.Client(parent.options["network"]["address"], parent.options["network"]["port"])
+        self.network = client.Client(parent.options["network"]["address"], parent.options["network"]["port"], **{"BINBOARD":self.recv_board})
         if open:
             self.open()
 
@@ -47,6 +47,21 @@ class Client():
     def get_players(self):
         self.network.send("get_players", "PLAYERS")
         return [j for j in [i.split("|") for i in self.network.data("PLAYERS")[0][1].split("|^|")] if j[0] != str(self.network.id)]
+
+    def set_target(self, id):
+        if self.network.relay(id):
+            self.network.cmd("relay", self.network.id, prefixes="RLY")
+            return True
+        return False
+
+    def send_board(self, data):
+        self.network.send(data, "RLYBINBOARD")
+
+    def recv_board(self, c, data):
+        self.parent.write_board(data[1])
+        self.parent.load_board()
+        #self.parent.vc.vb.draw_pieces()
+        self.parent.update()
 
 #---Functions------------------------------------------------------------------#
 

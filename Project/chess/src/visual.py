@@ -33,7 +33,7 @@ class Control(gui.Window):
         global scale
         global pallet
         scale = self.main.options["visual"]["scale"]
-        pallet = [self.main.options["visual"][i] for i in ("black", "white")]
+        pallet = [tuple((int(j) for j in self.main.options["visual"][i].split(", "))) for i in ("black", "white")]
 
 class Board:
 
@@ -93,6 +93,7 @@ class Board:
             for row in col:
                 if row.piece != None:
                     self.gbtp.goto((Vector(-4*scale, -4*scale)+row.pos*scale)+Vector(scale/2, -int(scale*0.15))) # moves to bottom center of square
+                    #self.gbtp.color(pallet[row.piece.colour]) # change piece colours
                     self.gbtp.write(characters[row.piece.colour][type(row.piece).__name__], align="center", font=("Arial", int(scale*0.8), "normal"))
 
     def draw_highlight(self, space, colour="black", width=1):
@@ -155,7 +156,13 @@ class PageNetwork(gui.Page):
             self.add(gui.tk.Text(self, text="Networking is Disabled"))
 
     def join(self, id):
-        pass
+        print(id)
+        if self.parent.main.set_target(id[0]):
+            print("RELAY GOOD")
+            self.show_page("network")
+        else:
+            print("RELAY FAIL")
+            self.show_page("players")
 
     def leave(self):
         pass
@@ -173,9 +180,8 @@ class PagePlayers(gui.Page):
             self.wigets[i].delete()
             del self.wigets[i]
         players = self.parent.main.get_players()
-        print(players)
         for k,i in enumerate(players):
-            self.add(gui.tk.Button(self, text=i[1], command=gui.Cmd(self.parent["network"].join, i[0])), name=k, row=2+k, column=0)
+            self.add(gui.tk.Button(self, text=i[1], command=gui.Cmd(self.parent["network"].join, i)), name=k, row=2+k, column=0)
         self.edit("active", "text", "Avalible Players: "+str(len(players)))
 
 class PageOptions(gui.Page):
