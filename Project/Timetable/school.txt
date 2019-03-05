@@ -1,0 +1,78 @@
+[Monday-1]
+start = 18:30
+Science = 30-3
+Geography = 45-2
+Spanish = 30-2
+English = 15-1
+Computer Science = 15-1
+Maths = 15-1
+
+[Tuesday-1]
+start = 18:30
+Science = 30-3
+History = 45-3
+RE = 30-2
+English = 15-1
+Computer Science = 15-1
+Maths = 15-1
+
+[Wednesday-1]
+start = 18:30
+Science = 30-3
+Geography = 45-2
+Spanish = 30-2
+English = 15-1
+Computer Science = 15-1
+Maths = 15-1
+
+[Thursday-1]
+start = 18:30
+Science = 30-3
+History = 45-3
+RE = 30-2
+English = 15-1
+Computer Science = 15-1
+Maths = 15-1
+
+[Friday-1]
+start = 18:30
+Science = 30-3
+English = 60-4
+Computer Science = 15-1
+Maths = 45-3
+
+[Saturday-1]
+start = 10:00
+Science = 30-3
+Geography = 45-3
+Wildcard = 30-0
+English = 15-1
+Computer Science = 15-1
+Maths = 15-1
+
+[Saturday-2]
+start = 18:30
+Science = 30-3
+History = 45-3
+Spanish = 30-2
+English = 15-1
+Computer Science = 15-1
+Maths = 15-1
+
+[Sunday-1]
+start = 10:00
+Science = 30-3
+Geography = 45-3
+Wildcard = 30-0
+English = 15-1
+Computer Science = 15-1
+Maths = 15-1
+
+[Sunday-2]
+start = 18:30
+Science = 30-3
+History = 45-3
+RE = 30-2
+English = 15-1
+Computer Science = 15-1
+Maths = 15-1
