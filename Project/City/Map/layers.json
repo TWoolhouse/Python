@@ -1,0 +1,21 @@
+[
+  {
+    "enabled":true,
+    "strength":1,
+    "num_layers":4,
+    "base_roughness":0.000001,
+    "roughness":0.5,
+    "persistence":2,
+    "min_value":0,
+    "mask":false
+  },{
+    "enabled":false,
+    "mask":true,
+    "strength":1,
+    "num_layers":1,
+    "base_roughness":1,
+    "roughness":2,
+    "persistence":0.5,
+    "min_value":0
+  }
+]

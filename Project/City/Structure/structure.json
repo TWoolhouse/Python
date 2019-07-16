@@ -1,0 +1,17 @@
+{
+  "shapes": [
+    {
+      "contort": true,
+      "verticies": [
+        [0, 0]
+      ]
+    },{
+      "contort": false,
+      "verticies": [
+        [0, 0],
+        [1, 0],
+        [0, 1]
+      ]
+    }
+  ]
+}
