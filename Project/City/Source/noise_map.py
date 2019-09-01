@@ -6,8 +6,8 @@ import iofile
 def generate(width, height, val_min, val_max, val_base, layers_name, random, noise, seed, dispatch):
     layers = [i for i in iofile.read.json(layers_name)]
 
-    log.debug("Generating Noise Map:\n\tWidth: {}\n\tHeight: {}\n\tLayers: {}\n\tNumber of Layers: {}\n\tMin Height: {}\n\tMax Height: {}\n\tBase Height: {}".format(
-        width, height, layers_name, len([i for i in layers if i["enabled"]]), val_min, val_max, val_base))
+    log.debug("Generating Noise Map:\n\tWidth: %d\n\tHeight: %d\n\tLayers: %s\n\tNumber of Layers: %d\n\tMin Height: %d\n\tMax Height: %d\n\tBase Height: %d",
+        width, height, layers_name, len([i for i in layers if i["enabled"]]), val_min, val_max, val_base)
 
     grid, largest = gen(width, height, layers, random, noise, seed)
 

@@ -1,15 +1,17 @@
 {
   "small": {
     "priority":3,
-    "chance":0.9,
+    "chance":0.95,
     "width":1,
+    "priority_gap":3,
     "gap": [2,2],
     "length": [4,8]
   },
   "medium": {
     "priority":2,
-    "chance":0.5,
+    "chance":0.25,
     "width":2,
+    "priority_gap":2,
     "gap": [4,4],
     "length": [8,16]
   },
@@ -17,7 +19,8 @@
     "priority":1,
     "chance":0.15,
     "width":4,
-    "gap": [8,8],
+    "priority_gap":1,
+    "gap": [6,6],
     "length": [25,50]
   }
 }

@@ -8,7 +8,6 @@ from vector import Vector
 import randstate
 import graphics
 
-debug = cfg.general.info["debug"]
 cfg.load("structure")
 random = randstate.Random(10)
 
@@ -46,7 +45,7 @@ def enlarge(shape, scale):
 def transform(shape, random):
     return shape
 
-empty_shapes = convert_shapes(iofile.read.json("Settings/"+cfg.structure.shapes["empty"])["shapes"])
+empty_shapes = convert_shapes(iofile.read.json("Structure/"+cfg.structure.shapes["empty"]))
 
 x = generate(10, 10, 1, 0.1, random)
 print(x)

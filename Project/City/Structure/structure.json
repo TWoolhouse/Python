@@ -1,17 +1,15 @@
-{
-  "shapes": [
+[
     {
-      "contort": true,
+      "contort": 3,
       "verticies": [
         [0, 0]
       ]
     },{
-      "contort": false,
+      "contort": 0,
       "verticies": [
         [0, 0],
         [1, 0],
         [0, 1]
       ]
     }
-  ]
-}
+]

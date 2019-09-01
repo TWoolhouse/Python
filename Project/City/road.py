@@ -1,5 +1,5 @@
 import config as cfg
-from log import log, logfunc
+from log import log
 
 import libs
 import iofile
@@ -27,11 +27,14 @@ class Cell:
     def __init__(self):
         pass
 
+CELL = Cell()
+
 class Road(Cell):
-    def __init__(self, name, orientation, location):
+    def __init__(self, name, orientation, location, pos):
         self.name = name
         self.orientation = orientation
         self.location = location
+        self.pos = pos
         self.children = []
 
 class Intersection(Road):
@@ -40,13 +43,19 @@ class Intersection(Road):
 
 class Gap(Cell):
     def __init__(self, orientation, parent):
-        self.orientations = [orientation]
-        self.parents = [parent]
+        self.orientation = orientation
+        self.parent = parent
+
+    def remove(self):
+        for index in range(len(self.parent.children)):
+            if self.parent.children[index]["road"] == self:
+                self.parent.children.pop(index)
+                break
 
 class Layout:
     def __init__(self, grid):
         self.grid = grid
-        self.grid.add("road", Cell())
+        self.grid.add("road", CELL)
         self.load_templates()
         self.generate()
 
@@ -60,9 +69,45 @@ class Layout:
             return self.roads
 
     def generate(self):
-        for pos in distribution(self.grid):
-            GenRoad(pos, self)
+        log.debug("Additional Iterations: %d", cfg.road.info["iterations"])
+        log.debug("Culling: %s (Final Cull: %s)", cfg.road.info["cull"], cfg.road.info["cull_final"])
+        for iterations in range(cfg.road.info["iterations"]+1):
+            log.debug("Iteration: %d", iterations)
+            for pos in distribution(self.grid):
+                GenRoad(pos, self)
+            if (iterations != cfg.road.info["iterations"] and cfg.road.info["cull"]) or (iterations == cfg.road.info["iterations"] and cfg.road.info["cull_final"]):
+                self.cull()
+
         log.debug("Layout: %d/%d Road Pieces", sum([1 for i in self.grid.all() if isinstance(i["road"], Road)]), cfg.general.map["width"]*cfg.general.map["height"])
+
+    def cull(self):
+        log.debug("Culling")
+        areas = []
+        for node in self.grid.all():
+            if not isinstance(node["road"], Road) or any(node in area for area in areas):
+                continue
+            segment = {node}
+            target = [node.pos]
+            chosen = {node.pos}
+            count = 0
+            while count < len(target):
+                pos = target[count]
+                for vec in ORIENTATION:
+                    nos = pos + vec
+                    if nos[0] >= 0 and nos[0] < self.grid("width") and nos[1] >= 0 and nos[1] < self.grid("height") and nos not in chosen:
+                        nod = self.grid[nos]
+                        if isinstance(nod["road"], Road):
+                            target.append(nos)
+                            chosen.add(nos)
+                            segment.add(nod)
+                count += 1
+            areas.append(segment)
+        areas.sort(key=len, reverse=True)
+        for area in areas[1:]:
+            for node in area:
+                for child in node["road"].children:
+                    child["road"] = CELL
+                node["road"] = CELL
 
 class Orientation:
     def __init__(self, index):
@@ -90,6 +135,7 @@ class GenRoad:
 
     def main(self, pos):
         self.segments = []
+        self.gap_intersec = {}
         for length in range(self.road["length"][1]):
             for width in range(self.road["width"]):
                 seg = self.calc_seg(pos, length, width)
@@ -103,7 +149,7 @@ class GenRoad:
         cell = pos + (self.orientation.north_vec * length) + (self.orientation.east_vec * width)
         if self.offmap(cell) or self.valid_road(cell):
             return False
-        seg = [(cell, self.orientation.north, width), []]
+        seg = [(cell, self.orientation.north, width, cell), []]
         if width == 0:
             res = self.calc_gaps(cell, self.orientation.west_vec, self.orientation.west, self.orientation.east)
             if res != False:
@@ -130,11 +176,7 @@ class GenRoad:
                     self.failstate = 3
                     return False
             if isinstance(cell, Gap):
-                if len(cell.orientations) < 2:
-                    if iori in cell.orientations or ori in cell.orientations:
-                        self.failstate = 4
-                        return False
-                else:
+                if cell.orientation in (ori, iori):
                     self.failstate = 4
                     return False
             gs.append((gp, ori))
@@ -165,10 +207,11 @@ class GenRoad:
             self.failstate = 2
             return True
         if isinstance(cell, Gap):
-            if len(cell.orientations) > 1:
-                self.failstate = 3
-                return True
-            elif self.orientation.north in cell.orientations or self.orientation.south in cell.orientations:
+            if cell.orientation in (self.orientation.north, self.orientation.south):
+                if cell.parent not in self.gap_intersec:
+                    self.gap_intersec[cell.parent] = 1
+                else:
+                    self.gap_intersec[cell.parent] += 1
                 return False
         return False
 
@@ -177,6 +220,8 @@ class GenRoad:
             self.segments = self.segments[:len(self.segments) // self.road["width"] * self.road["width"]]
         if self.failstate != 0 and len(self.segments) > self.settings["length"] * self.road["width"]:
             self.segments = self.segments[:self.settings["length"] * self.road["width"]]
+        if not all((len(road.children) == count if self.parent.roads[road.name]["width"] != 1 else len([gap for gap in road.children if gap["road"].orientation % 2 == self.orientation.north % 2]) == count for road, count in self.gap_intersec.items())):
+            return False
         if len(self.segments) // self.road["width"] >= self.road["length"][0]:
             return True
         return False
@@ -184,17 +229,22 @@ class GenRoad:
     def update(self):
         for road, gaps in self.segments:
             parent = Road(self.road["name"], *road[1:])
-            self.parent.grid[road[0]]["road"] = parent
+            rell = self.parent.grid[road[0]]
+            if isinstance(rell["road"], Gap):
+                rell["road"].remove()
+            rell["road"] = parent
             for gap, ori in gaps:
                 cell = self.parent.grid[gap]["road"]
                 if isinstance(cell, Gap):
-                    cell.orientations.append(ori)
-                    cell.parents.append(parent)
-                    parent.children.append(cell)
+                    if self.road["priority_gap"] < self.parent.roads[cell.parent.name]["priority_gap"]:
+                        cell.remove()
+                        cell.orientation = ori
+                        cell.parent = parent
+                        parent.children.append(self.parent.grid[gap])
                 else:
                     child = Gap(ori, parent)
                     self.parent.grid[gap]["road"] = child
-                    parent.children.append(child)
+                    parent.children.append(self.parent.grid[gap])
 
 def distribution(grid):
     log.debug("Distribution: {}".format(cfg.road.info["distro"].title()))

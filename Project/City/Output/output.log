@@ -1,0 +1,22 @@
+[16:49:37>INFO] main.<module> -> Generating City:
+	Seed: 1621
+	Width: 75
+	Height: 25
+	Cells: 1875
+	Threads: 5
+[16:49:37>INFO] road.generate -> Generating Road Grid
+[16:49:37>DEBUG] road.load_templates -> Loaded Road Templates: 3
+	roads.small -> Priority:3, Chance:95.0%, Width:1, Length:4-8, Gap:2-2
+	roads.medium -> Priority:2, Chance:25.0%, Width:2, Length:8-16, Gap:4-4
+	roads.large -> Priority:1, Chance:15.0%, Width:4, Length:25-50, Gap:6-6
+[16:49:37>DEBUG] road.generate -> Additional Iterations: 0
+[16:49:37>DEBUG] road.generate -> Culling: True (Final Cull: False)
+[16:49:37>DEBUG] road.generate -> Iteration: 0
+[16:49:37>DEBUG] road.distribution -> Distribution: Sprawl
+[16:49:38>DEBUG] road.generate -> Layout: 408/1875 Road Pieces
+[16:49:38>INFO] road.generate -> Finished Road Grid!
+[16:49:38>INFO] zone.generate -> Generating Zones
+[16:49:38>DEBUG] zone.generate -> Zones Count: 101
+[16:49:38>INFO] zone.generate -> Finished Zones!
+[16:49:38>INFO] structure.generate -> Generating Structures
+[16:49:38>CRITICAL] structure.__new__ -> Base Class: 'GenRoom' Can Not Be Instantiated!
