@@ -1,63 +1,48 @@
-import libs
-import iofile
-from vector import Vector
-from src import logic, visual, network
+import src
+from src.log import log
+from src.states import State
+from src import properties
+from src import window
+from src import board
+
+import time
+
+class DeltaTime:
+    frame_count = 0
+    def __init__(self, tick_rate):
+        self.current = time.time()
+        self.tick_rate = tick_rate
+        self.__call__()
+    def __call__(self):
+        self.previous = self.current
+        self.current = time.time()
+        self.time = self.current - self.previous
+        DeltaTime.frame_count += 1
+        return self
+    def sleep(self):
+        sleep = (self.tick_rate-self.time) / 2
+        time.sleep(sleep if sleep > 0 else 0)
+        return self
 
 class Game:
+    def __init__(self, ups=60):
+        State(State.Game, State.Game.Null)
+        self.callback = dict()
 
-    def __init__(self):
-        self.up = False
-        self.options = iofile.read.cfg("options")
-        self.lb = logic.Board()
-        self.lb.build()
-        self.vc = visual.Control(self)
-        #self.ns = network.Server(self, True)
-        self.nc = network.Client(self, True)
+        self.window = window.Window("Chess")
+        self.board = board.Board()
+        self.delta_time = DeltaTime(2/ups)
 
-    def __repr__(self):
-        return "{}\n{}\n{}".format(self.lb, self.vc, "nc")
+        #Assigning Property Callbacks
+        properties.Properties.board = lambda: self.board
+        properties.Properties.window = lambda: self.window
+        properties.Properties.delta_time = lambda: self.delta_time
 
     def update(self):
-        self.up = True
+        global dev_frame_count
+        self.window.update()
+        self.delta_time().sleep()
 
-    def update_options(*args):
-        global options
-        options = iofile.read.cfg("options")
-        for i in args:
-            getattr(self, i).update_options()
-
-#---Events---------------------------------------------------------------------#
-
-    def select(self, pos):
-        val = self.lb.select(pos)
-        self.vc.vb.select(pos, val)
-        if val == 1 and self.nc.network.target != -1:
-            self.save_board()
-            self.nc.send_board(self.read_board())
-
-    def get_players(self):
-        return self.nc.get_players()
-
-    def set_target(self, id):
-        return self.nc.set_target(id)
-
-#---Functions------------------------------------------------------------------#
-
-    def save_board(self, file_name="_temp"):
-        iofile.write.pickle("saves/"+file_name, self.lb)
-    def load_board(self, file_name="_temp"):
-        self.lb = iofile.read.pickle("saves/"+file_name)
-    def read_board(self, file_name="_temp"):
-        return iofile.read.bin("saves/"+file_name)
-    def write_board(self, data, file_name="_temp"):
-        iofile.write.bin("saves/"+file_name, data)
-
-#---Run------------------------------------------------------------------------#
-
-main_game = Game()
-
-while True:
-    if main_game.up:
-        main_game.up = False
-        main_game.vc.vb.draw_pieces()
-    main_game.vc.update()
+game = Game()
+while not State(State.Game.Quit):
+    game.update()
