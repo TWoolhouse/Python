@@ -21,9 +21,11 @@ def generate(grid):
         if cell["zone"] and cell["zone"] not in zones:
             zones.append(cell["zone"])
 
+    log.debug("Allocating %d Structures to Dispatcher", len(zones))
     grid("dispatch").new("Structure", func=GenStructure)
     for zone in zones:
         grid("dispatch")["Structure"] = (zone, randstate.Random(grid("random").generate()))
+    log.debug("Dispatching %d Structures", len(zones))
     grid("dispatch")("Structure")
     grid("dispatch").wait("Structure")
 
@@ -49,10 +51,12 @@ class GenRoom:
             log.critical(msg)
             raise TypeError(msg)
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         pass
 
 class RoomType:
     class InitRoom(GenRoom):
-        def __init__(self):
+        def __init__(self, *args, **kwargs):
             super().__init__()
+        def __call__(self, random):
+            
