@@ -4,17 +4,22 @@ import node
 class VALID(node.Dispatch, output=True):
 
     def handle(self):
-        data = self.node.recv("VALID", wait=int(self.data.data))
-        words = []
-        for w in data:
-            words.append(w.data)
+        data = self.node.recv("VALID", wait=True)[0].data
+        words = data.split("|")
+        self.data.tags.append("RESULT")
         return words
 
-client = node.Client("192.168.1.105", 80, dispatchers=(,))
+client = node.Client("192.168.1.105", 80, dispatch=(VALID,))
 
 with client:
     while True:
         string = input("Please enter a word:\n")
         if not string:
             break
-        client.send(string, "VALID")
+        if string.endswith("!"):
+            client.send(string[:-1], "VALID")
+        else:
+            client.send(string, "VALID", node.Tag("LENGTH"))
+        data = client.recv("VALID", node.Tag("RESULT"), wait=True)[0].data
+        print("Words: {} -> <{}>:".format(string, len(data)))
+        print("\n".join((str(i)+") "+j for i,j in enumerate(data, start=1))))

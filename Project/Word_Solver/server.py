@@ -14,16 +14,17 @@ def load(lang="all"):
 load()
 
 def valid(phrase, length=True):
+    # print("VALID", phrase, length)
     s_text = phrase.replace("_", "\\w")
     l_text = len(phrase)
     prog = re.compile(s_text, re.I)
 
     res = []
     for name, language in languages.items():
-        print("Language:", name)
+        # print("Language:", name)
         for word in language:
-            if l_text == len(word) and re.match(s_text, word):
-                print(word, s_text)
+            if ((not length) or l_text == len(word)) and re.match(s_text, word):
+                # print(word)
                 res.append(word)
     return res
 
@@ -31,9 +32,9 @@ class VALID(node.Dispatch):
 
     def handle(self):
         data = valid(self.data.data, "LENGTH" in self.data.tags)
+        print("Request: {} -> <{}> {}".format(self.__class__.__name__, len(data), self.data.data))
         self.node.send(len(data), "VALID", node.Tag("COUNT"))
-        for w in data:
-            self.node.send(w, "DATA", "VALID")
+        self.node.send("|".join(data), "DATA", "VALID")
 
 server = node.Server("", 80, dispatchers=(VALID,))
 with server:
