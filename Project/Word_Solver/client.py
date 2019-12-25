@@ -16,10 +16,7 @@ with client:
         string = input("Please enter a word:\n")
         if not string:
             break
-        if string.endswith("!"):
-            client.send(string[:-1], "VALID")
-        else:
-            client.send(string, "VALID", node.Tag("LENGTH"))
+        client.send(string, "VALID")
         data = client.recv("VALID", node.Tag("RESULT"), wait=True)[0].data
         print("Words: {} -> <{}>:".format(string, len(data)))
         print("\n".join((str(i)+") "+j for i,j in enumerate(data, start=1))))
