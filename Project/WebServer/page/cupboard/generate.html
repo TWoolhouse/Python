@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<html>
+
+<link rel="stylesheet" type="text/css" href="/style/dark.css">
+<link rel="stylesheet" type="text/css" href="/style/cupboard/key.css">
+
+<head>
+    <script>history.replaceState({}, null, "/cupboard/genkey")</script>
+    <title>The Cupboard</title>
+</head>
+
+<body>
+
+    <h1>Cupboard Authorization</h1>
+    <form action="/cupboard/gen" method="post">
+        <select required name="exp">
+            <option value="5">05 min</option>
+            <option value="15" selected>15 min</option>
+            <option value="30">30 min</option>
+            <option value="60">01 hr</option>
+        </select>
+        <input type="number" name="amt" value="0" min="0" max="128">
+        <button type="submit">Submit</button>
+    </form>
+</body>
+
+</html>

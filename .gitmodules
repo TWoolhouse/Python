@@ -4,3 +4,6 @@
 [submodule "WebServer"]
 	path = Project\\WebServer
 	url = https://github.com/TWoolhouse/WebServer
+[submodule ".\\Project\\WebServer\\"]
+	path = .\\Project\\WebServer\\
+	url = git:https://github.com/TWoolhouse/WebServer
