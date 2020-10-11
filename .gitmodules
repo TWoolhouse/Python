@@ -1,3 +1,6 @@
 [submodule "Libraries"]
 	path = Libraries
 	url = https://github.com/TWoolhouse/Libraries
+[submodule "WebServer"]
+	path = Project\\WebServer
+	url = https://github.com/TWoolhouse/WebServer
