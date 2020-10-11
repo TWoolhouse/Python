@@ -4,3 +4,6 @@
 [submodule "WebServer"]
 	path = Project/WebServer
 	url = https://github.com/TWoolhouse/WebServer
+[submodule "NEA"]
+	path = Project/NEA
+	url = https://github.com/TWoolhouse/NEA
